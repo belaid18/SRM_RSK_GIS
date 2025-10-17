@@ -1,0 +1,315 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saisie des Données SIG SRM RSK</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        /* Global Styles */
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Headings */
+        h1 {
+            font-size: 2.5rem;
+            color: #1a5276;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        /* Form Container */
+        form {
+            background-color: #fff;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Form Elements */
+        label {
+            font-size: 1rem;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        select, input, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1rem;
+            color: #333;
+            background-color: #fff;
+            transition: border-color 0.3s ease;
+        }
+
+        select:focus, input:focus, textarea:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* Button */
+        button {
+            background-color: #3498db;
+            color: #fff;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            form {
+                padding: 1.5rem;
+            }
+        }
+
+        /* Error and Success Messages */
+        .alert {
+            padding: 10px;
+            margin-bottom: 1rem;
+            border-radius: 4px;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-4">
+        <nav class="mb-4">
+            <a href="/" class="text-blue-500 hover:underline mr-4">Accueil</a>
+            <a href="/stats" class="text-blue-500 hover:underline mr-4">Statistiques</a>
+            <a href="/saisie" class="text-blue-500 hover:underline mr-4">Saisie des Données</a>
+            <a href="/add_centre" class="text-blue-500 hover:underline">Gestion des Centres</a>
+        </nav>
+        <h1 class="text-2xl font-bold mb-4">Saisie des Données SIG SRM RSK</h1>
+
+        <!-- Formulaire de saisie -->
+        <form id="dataForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label for="centre" class="block text-sm font-medium text-gray-700">Centre *</label>
+                <select id="centre" name="centre" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                    <option value="">Sélectionnez un centre</option>
+                    {% for centre in centres %}
+                        <option value="{{ centre[0] }}">{{ centre[1] }} - {{ centre[2] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="date_collecte" class="block text-sm font-medium text-gray-700">Date de Collecte *</label>
+                <input type="date" id="date_collecte" name="date_collecte" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            <div>
+                <label for="metier" class="block text-sm font-medium text-gray-700">Métier *</label>
+                <select id="metier" name="metier" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                    <option value="">Sélectionnez un métier</option>
+                    {% for metier in metiers %}
+                        <option value="{{ metier[0] }}">{{ metier[1] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="type_reseau" class="block text-sm font-medium text-gray-700">Type de Réseau *</label>
+                <select id="type_reseau" name="type_reseau" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                    <option value="">Sélectionnez d'abord un métier</option>
+                </select>
+            </div>
+            <div>
+                <label for="statut_integration" class="block text-sm font-medium text-gray-700">Statut d'Intégration *</label>
+                <select id="statut_integration" name="statut_integration" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                    <option value="Intégré dans SIG">Intégré dans SIG</option>
+                    <option value="Intégrable immédiatement">Intégrable immédiatement</option>
+                    <option value="Nécessite traitement">Nécessite traitement</option>
+                    <option value="À collecter sur terrain">À collecter sur terrain</option>
+                </select>
+            </div>
+            <div>
+                <label for="linear_estime" class="block text-sm font-medium text-gray-700">Linéaire Estimé (km) *</label>
+                <input type="number" step="0.01" id="linear_estime" name="linear_estime" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            <div>
+                <label for="linear_theorique" class="block text-sm font-medium text-gray-700">Linéaire Théorique (km)</label>
+                <input type="number" step="0.01" id="linear_theorique" name="linear_theorique" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            <div>
+                <label for="linear_integrable" class="block text-sm font-medium text-gray-700">Intégrable (km)</label>
+                <input type="number" step="0.01" id="linear_integrable" name="linear_integrable" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            <div>
+                <label for="linear_semi_integrable" class="block text-sm font-medium text-gray-700">Semi-Intégrable (km)</label>
+                <input type="number" step="0.01" id="linear_semi_integrable" name="linear_semi_integrable" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            <div>
+                <label for="linear_a_collecter" class="block text-sm font-medium text-gray-700">À Collecter (km)</label>
+                <input type="number" step="0.01" id="linear_a_collecter" name="linear_a_collecter" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            <div>
+                <label for="nombre_ouvrages" class="block text-sm font-medium text-gray-700">Nombre d'Ouvrages</label>
+                <input type="number" id="nombre_ouvrages" name="nombre_ouvrages" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            <div>
+                <label for="ouvrages_integrables" class="block text-sm font-medium text-gray-700">Ouvrages Intégrables</label>
+                <input type="number" id="ouvrages_integrables" name="ouvrages_integrables" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            <div>
+                <label for="ouvrages_a_traiter" class="block text-sm font-medium text-gray-700">Ouvrages à Traiter</label>
+                <input type="number" id="ouvrages_a_traiter" name="ouvrages_a_traiter" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            <div>
+                <label for="ouvrages_a_collecter" class="block text-sm font-medium text-gray-700">Ouvrages à Collecter</label>
+                <input type="number" id="ouvrages_a_collecter" name="ouvrages_a_collecter" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            <div>
+                <label for="agent_collecteur" class="block text-sm font-medium text-gray-700">Agent Collecteur</label>
+                <input type="text" id="agent_collecteur" name="agent_collecteur" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            <div>
+                <label for="source_donnee" class="block text-sm font-medium text-gray-700">Source des Données</label>
+                <input type="text" id="source_donnee" name="source_donnee" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            <div>
+                <label for="format_donnee" class="block text-sm font-medium text-gray-700">Format des Données</label>
+                <input type="text" id="format_donnee" name="format_donnee" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            <div>
+                <label for="annee_reference" class="block text-sm font-medium text-gray-700">Année de Référence</label>
+                <input type="number" id="annee_reference" name="annee_reference" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            <div>
+                <label for="precision_estimee" class="block text-sm font-medium text-gray-700">Précision Estimée (%)</label>
+                <input type="number" step="0.01" id="precision_estimee" name="precision_estimee" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            <div>
+                <label for="notes" class="block text-sm font-medium text-gray-700">Notes et Observations</label>
+                <textarea id="notes" name="notes" rows="4" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+            </div>
+            <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Sauvegarder</button>
+        </form>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            $('#metier').change(function() {
+                var id_metier = $(this).val();
+                if (id_metier) {
+                    $.get('/api/types_reseau/' + id_metier, function(data) {
+                        $('#type_reseau').empty();
+                        $('#type_reseau').append('<option value="">Sélectionner un type de réseau</option>');
+                        $.each(data, function(index, type) {
+                            $('#type_reseau').append('<option value="' + type.id_type_reseau + '">' + type.nom_type_reseau + '</option>');
+                        });
+                    });
+                } else {
+                    $('#type_reseau').empty();
+                    $('#type_reseau').append('<option value="">Sélectionner un type de réseau</option>');
+                }
+            });
+
+            $('#dataForm').submit(function(event) {
+                event.preventDefault();
+                $.ajax({
+                    url: '/sauvegarder_donnee',
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    success: function(response) {
+                        if (response.success) {
+                            alert(response.message);
+                            $('#dataForm')[0].reset();
+                            $('#type_reseau').empty();
+                            $('#type_reseau').append('<option value="">Sélectionner un type de réseau</option>');
+                        } else {
+                            alert('Erreur : ' + response.message);
+                        }
+                    },
+                    error: function() {
+                        alert('Erreur lors de la sauvegarde des données.');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

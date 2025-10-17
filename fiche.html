@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fiche de Collecte de Données par Centre</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 10px;
+            line-height: 1.4;
+            font-size: 12px;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 5px;
+            border-bottom: 1px solid #ccc;
+        }
+        .header .logo-left {
+            height: 100px;
+        }
+        .header .logo-right {
+            height: 100px;
+        }
+        .header .title {
+            text-align: center;
+            font-size: 12px;
+            font-weight: bold;
+            flex-grow: 1;
+            padding: 0 px;
+        }
+        h1 {
+            color: #333;
+            font-size: 16px;
+            margin-bottom: 10px;
+            display: none;
+        }
+        h2 {
+            color: #333;
+            font-size: 14px;
+            margin: 10px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 4px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .status {
+            margin-bottom: 10px;
+        }
+        .status span {
+            display: inline-block;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            margin-right: 5px;
+            vertical-align: middle;
+        }
+        .integrable-direct { background-color: blue; }
+        .integrable-apres { background-color: yellow; }
+        .a-collecter { background-color: red; }
+        .manquantes { background-color: black; }
+        .contact {
+            margin-top: 10px;
+        }
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .export-button {
+            margin-top: 10px;
+        }
+        .export-button button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .export-button button:hover {
+            background-color: #45a049;
+        }
+        input[type="text"], input[type="checkbox"] {
+            transform: scale(0.8);
+            border: none; /* Remove border */
+            background-color: #fff; /* Clean background */
+            transition: box-shadow 0.3s ease; /* Smooth transition for shadow */
+        }
+        input[type="text"] {
+            padding: 6px 8px; /* Adjusted padding for text inputs */
+            border-radius: 4px; /* Rounded corners for background */
+            color: #333;
+            font-family: 'Arial', sans-serif;
+            font-size: 15px;
+             /* Ensure enough width for 50 characters */
+        }
+        input[type="text"]::placeholder {
+            color: #999;
+            opacity: 1;
+            text-overflow: ellipsis; /* Ensure placeholder visibility */
+        }
+        input[type="text"]:focus, input[type="checkbox"]:focus {
+            outline: none; /* Remove default outline */
+            box-shadow: 0 0 6px rgba(0, 123, 255, 0.4); /* Subtle blue shadow on focus */
+        }
+        input[type="text"]:hover, input[type="checkbox"]:hover {
+            box-shadow: 0 0 3px rgba(0, 0, 0, 0.25); /* Subtle shadow on hover */
+        }
+        input[type="text"]:disabled, input[type="checkbox"]:disabled {
+            background-color: #f5f5f5;
+            color: #aaa;
+            cursor: not-allowed;
+        }
+    @media print {
+        body {
+            margin: 0;
+            padding: 10mm;
+            font-size: 10pt;
+        }
+        .header {
+            page-break-inside: avoid;
+        }
+        .header .logo-left, .header .logo-right {
+            height: 60px;
+        }
+        .header .title {
+            font-size: 10pt;
+        }
+        h1 {
+            display: none;
+        }
+        h2 {
+            font-size: 12pt;
+        }
+        table, .status, .contact, .header-row, .export-button {
+            page-break-inside: avoid;
+        }
+        .export-button {
+            display: none;
+        }
+        @page {
+            size: A4;
+            margin-right: 20mm;
+            margin-left: 15mm;
+        }
+    }
+</style>
+</head>
+<body>
+    <div class="header">
+        <img src="C:\Users\MWC\Desktop\Projet_SRM_RSK\SRM\venv2025\SRM_rsk\srm-rsk.jpg" class="logo-left" alt="SRM RSK Logo">
+        <div class="title">Audit et plan d’action du système d’information géographique - BC N° 3139-25</div>
+        <img src="C:\Users\MWC\Desktop\Projet_SRM_RSK\SRM\venv2025\SRM_rsk\Butec.png" alt="BUTEC Logo" class="logo-right">
+    </div>
+    <div class="header-row">
+        <p><strong>Nom du centre :</strong> <input type="text" id="centerName" placeholder="............................."></p>
+        <p><strong>Le :</strong> <input type="text" placeholder="....../......./.........."></p>
+    </div>
+    <div>
+        <p><strong>Province :</strong> <input type="text" placeholder="............................."></p>
+    </div>
+    <h2>Fiche standardisée pour chaque centre/gérance - Format Excel/Tableau</h2>
+
+    <table>
+        <tr>
+            <th></th>
+            <th>ÉLECTRICITÉ</th>
+            <th>EAU POTABLE</th>
+            <th>ASSAINISSEMENT</th>
+        </tr>
+        <tr>
+            <td><strong>Plans papier</strong></td>
+            <td><input type="checkbox"> Oui <input type="checkbox"> Non</td>
+            <td><input type="checkbox"> Oui <input type="checkbox"> Non</td>
+            <td><input type="checkbox"> Oui <input type="checkbox"> Non</td>
+        </tr>
+        <tr>
+            <td><strong>Plans numériques</strong></td>
+            <td><input type="checkbox"> AutoCAD <input type="checkbox"> PDF</td>
+            <td><input type="checkbox"> AutoCAD <input type="checkbox"> PDF</td>
+            <td><input type="checkbox"> AutoCAD <input type="checkbox"> PDF</td>
+        </tr>
+        <tr>
+            <td><strong>Données SIG</strong></td>
+            <td><input type="checkbox"> Shapefile <input type="checkbox"> GDB</td>
+            <td><input type="checkbox"> Shapefile <input type="checkbox"> GDB</td>
+            <td><input type="checkbox"> Shapefile <input type="checkbox"> GDB</td>
+        </tr>
+        <tr>
+            <td><strong>Attributs critiques</strong></td>
+            <td><input type="checkbox"> Localisation <input type="checkbox"> Longueur <input type="checkbox"> Type câble <input type="checkbox"> Tension</td>
+            <td><input type="checkbox"> Localisation <input type="checkbox"> Longueur <input type="checkbox"> Diamètre <input type="checkbox"> Matériau</td>
+            <td><input type="checkbox"> Localisation <input type="checkbox"> Longueur <input type="checkbox"> Diamètre <input type="checkbox"> Type</td>
+        </tr>
+        <tr>
+            <td><strong>Année données</strong></td>
+            <td><input type="text" placeholder="........"></td>
+            <td><input type="text" placeholder="........"></td>
+            <td><input type="text" placeholder="........"></td>
+        </tr>
+        <tr>
+            <td><strong>Couverture (%)</strong></td>
+            <td><input type="text" placeholder="........."></td>
+            <td><input type="text" placeholder="........."></td>
+            <td><input type="text" placeholder="........."></td>
+        </tr>
+        <tr>
+            <td><strong>Qualité estimée</strong></td>
+            <td><input type="checkbox"> Bonne <input type="checkbox"> Moyenne <input type="checkbox"> Faible</td>
+            <td><input type="checkbox"> Bonne <input type="checkbox"> Moyenne <input type="checkbox"> Faible</td>
+            <td><input type="checkbox"> Bonne <input type="checkbox"> Moyenne <input type="checkbox"> Faible</td>
+        </tr>
+    </table>
+
+    <div class="status">
+        <h2>STATUT D'INTÉGRABILITÉ :</h2>
+        <p><span class="integrable-direct"></span><strong>Intégrable direct :</strong> ........ km</p>
+        <p><span class="integrable-apres"></span><strong>Intégrable après traitement :</strong> ........ km</p>
+        <p><span class="a-collecter"></span><strong>Données à collecter :</strong> ........ km</p>
+        <p><span class="manquantes"></span><strong>Données manquantes :</strong> ........ km</p>
+    </div>
+
+    <div class="contact">
+        <h2>CONTACT RÉFÉRENT :</h2>
+        <p><strong>Nom :</strong> <input type="text" placeholder="............................................................"></p>
+        <p><strong>Email :</strong> <input type="text" placeholder="......................................................................." style="min-width: 250px;"></p>
+        <p><strong>Email :</strong> <input type="text" placeholder=".......................................................................", style="min-width: 250px;"></p>
+    </div>
+
+    <div class="export-button">
+        <button onclick="exportToPDF()">Exporter en PDF</button>
+    </div>
+
+    <script>
+        function exportToPDF() {
+            const centerName = document.getElementById('centerName').value || 'Centre_Inconnu';
+            const date = new Date().toLocaleString('fr-FR', { timeZone: 'UTC', hour12: false }).replace(/:/g, '-').replace(/\//g, '-');
+            const filename = `Fiche_${centerName}_${date}.pdf`;
+            window.print();
+        }
+    </script>
+</body>
+</html>
